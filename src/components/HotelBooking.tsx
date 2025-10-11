@@ -24,7 +24,14 @@ export function HotelBooking() {
 
   useEffect(() => {
     loadHotels();
-    checkFlightDestination();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const destination = urlParams.get('destination');
+    if (destination) {
+      setSearchLocation(destination);
+    } else {
+      checkFlightDestination();
+    }
   }, []);
 
   const loadHotels = async () => {
@@ -52,8 +59,14 @@ export function HotelBooking() {
   };
 
   const filteredHotels = hotels.filter((hotel) => {
-    const matchesLocation = searchLocation === '' || hotel.location.toLowerCase().includes(searchLocation.toLowerCase());
-    return matchesLocation;
+    if (searchLocation === '') return true;
+
+    const searchLower = searchLocation.toLowerCase();
+    return (
+      hotel.location.toLowerCase().includes(searchLower) ||
+      hotel.name.toLowerCase().includes(searchLower) ||
+      hotel.address.toLowerCase().includes(searchLower)
+    );
   });
 
   const calculateNights = () => {
