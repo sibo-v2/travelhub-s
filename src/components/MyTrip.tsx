@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Plane, MapPin, Car, Calendar, Trash2, Edit2, Plus, CheckCircle, Clock, XCircle, Receipt } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Clock, Receipt, CheckCircle, XCircle, Plane } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 import { bookingService } from '../services/bookingService';
+import { itineraryService, Trip } from '../services/itineraryService';
 
 export function MyTrip() {
   const { user, loading: authLoading } = useAuth();
-  const [flights, setFlights] = useState<any[]>([]);
-  const [destinations, setDestinations] = useState<any[]>([]);
-  const [transportation, setTransportation] = useState<any[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'saved' | 'bookings'>('saved');
+  const [activeTab, setActiveTab] = useState<'itinerary' | 'bookings'>('itinerary');
 
   useEffect(() => {
     if (authLoading) {
@@ -31,29 +29,17 @@ export function MyTrip() {
     setLoading(true);
 
     try {
-      const [flightsData, destinationsData, transportData, bookingsData] = await Promise.all([
-        supabase
-          .from('trip_flights')
-          .select('*, flights(*)')
-          .eq('user_id', user.id)
-          .order('added_at', { ascending: false }),
-        supabase
-          .from('trip_destinations')
-          .select('*, destinations(*)')
-          .eq('user_id', user.id)
-          .order('added_at', { ascending: false }),
-        supabase
-          .from('trip_transportation')
-          .select('*, transportation_bookings(*)')
-          .eq('user_id', user.id)
-          .order('added_at', { ascending: false }),
+      const [tripsData, bookingsData] = await Promise.all([
+        itineraryService.getUserTrips(user.id),
         bookingService.getUserBookings(user.id).catch(() => []),
       ]);
 
-      if (flightsData.data) setFlights(flightsData.data);
-      if (destinationsData.data) setDestinations(destinationsData.data);
-      if (transportData.data) setTransportation(transportData.data);
-      if (bookingsData) setBookings(bookingsData);
+      const tripsWithDetails = await Promise.all(
+        tripsData.map(trip => itineraryService.getTripWithDays(trip.id))
+      );
+
+      setTrips(tripsWithDetails);
+      setBookings(bookingsData);
     } catch (error) {
       console.error('Error loading trip data:', error);
     } finally {
@@ -61,43 +47,30 @@ export function MyTrip() {
     }
   };
 
-  const removeFlight = async (id: string) => {
-    await supabase.from('trip_flights').delete().eq('id', id);
-    loadTripData();
-  };
-
-  const removeDestination = async (id: string) => {
-    await supabase.from('trip_destinations').delete().eq('id', id);
-    loadTripData();
-  };
-
-  const removeTransportation = async (id: string) => {
-    await supabase.from('trip_transportation').delete().eq('id', id);
-    loadTripData();
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price);
-  };
-
-  const formatTime = (datetime: string) => {
-    return new Date(datetime).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const formatDate = (datetime: string) => {
-    return new Date(datetime).toLocaleDateString('en-US', {
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
+  };
+
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (${days} days)`;
+  };
+
+  const calculateTripStats = (trip: Trip) => {
+    const totalPlaces = trip.days?.reduce((sum, day) => sum + (day.places?.length || 0), 0) || 0;
+    const totalCost = trip.days?.reduce((sum, day) =>
+      sum + (day.places?.reduce((daySum, place) => daySum + (place.cost || 0), 0) || 0), 0
+    ) || 0;
+    const totalDistance = trip.days?.reduce((sum, day) => sum + (day.total_distance || 0), 0) || 0;
+
+    return { totalPlaces, totalCost, totalDistance };
   };
 
   if (!user) {
@@ -130,8 +103,6 @@ export function MyTrip() {
     );
   }
 
-  const isEmpty = flights.length === 0 && destinations.length === 0 && transportation.length === 0;
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="relative h-[350px] overflow-hidden">
@@ -155,14 +126,14 @@ export function MyTrip() {
         <div className="bg-white dark:bg-gray-800 rounded-t-xl shadow-lg mb-8 -mt-20 relative z-10">
           <div className="flex border-b border-gray-200 dark:border-gray-700">
             <button
-              onClick={() => setActiveTab('saved')}
+              onClick={() => setActiveTab('itinerary')}
               className={`flex-1 py-4 px-6 text-center font-semibold transition-colors ${
-                activeTab === 'saved'
+                activeTab === 'itinerary'
                   ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              Saved Items
+              My Itinerary ({trips.length})
             </button>
             <button
               onClick={() => setActiveTab('bookings')}
@@ -263,11 +234,7 @@ export function MyTrip() {
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Booked On</p>
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {new Date(booking.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
+                        {formatDate(booking.created_at)}
                       </p>
                     </div>
                     <div>
@@ -297,224 +264,146 @@ export function MyTrip() {
               ))
             )}
           </div>
-        ) : isEmpty ? (
+        ) : trips.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
             <Calendar className="h-16 w-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              No items in your trip yet
+              No trips planned yet
             </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Start planning your trip by adding flights, destinations, and transportation
+              Start planning your next adventure by creating a trip itinerary
             </p>
           </div>
         ) : (
           <div className="space-y-8">
-            {flights.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-6">
-                  <Plane className="h-6 w-6 text-sky-600 dark:text-sky-400 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Flights ({flights.length})
-                  </h2>
-                </div>
-                <div className="space-y-4">
-                  {flights.map((item) => (
-                    <div
-                      key={item.id}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                              {item.flights.airline}
-                            </h3>
-                            <span className="px-3 py-1 bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 rounded-full text-sm font-medium">
-                              {item.flights.class_type}
-                            </span>
-                            <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-sm font-medium">
-                              {item.booking_status}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-300">
-                            <span className="font-semibold">{item.flights.origin}</span>
-                            <span>→</span>
-                            <span className="font-semibold">{item.flights.destination}</span>
-                          </div>
-                          <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                            {formatTime(item.flights.departure_time)} - {formatTime(item.flights.arrival_time)}
-                          </div>
-                          {item.notes && (
-                            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                              Note: {item.notes}
-                            </div>
-                          )}
-                          <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-                            Added {formatDate(item.added_at)}
-                          </div>
+            {trips.map((trip) => {
+              const stats = calculateTripStats(trip);
+
+              return (
+                <div key={trip.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                  <div className="bg-gradient-to-r from-sky-500 to-emerald-500 p-6 text-white">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h2 className="text-3xl font-bold mb-2">{trip.name}</h2>
+                        <div className="flex items-center gap-2 text-white/90 mb-1">
+                          <MapPin className="w-5 h-5" />
+                          <span className="text-lg">{trip.destination}</span>
                         </div>
-                        <div className="text-right ml-4">
-                          <div className="text-xl font-bold text-sky-600 dark:text-sky-400 mb-4">
-                            {formatPrice(item.flights.price)}
-                          </div>
-                          <button
-                            onClick={() => removeFlight(item.id)}
-                            className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </button>
+                        <div className="flex items-center gap-2 text-white/90">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDateRange(trip.start_date, trip.end_date)}</span>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {destinations.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-6">
-                  <MapPin className="h-6 w-6 text-emerald-600 dark:text-emerald-400 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Travel Guide ({destinations.length})
-                  </h2>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {destinations.map((item) => (
-                    <div
-                      key={item.id}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                            {item.destinations.name}
-                          </h3>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                            {item.destinations.city}, {item.destinations.country}
-                          </p>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-medium">
-                              {item.destinations.category}
-                            </span>
-                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
-                              {item.priority}
-                            </span>
-                          </div>
-                          {item.visit_date && (
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              Visit date: {formatDate(item.visit_date)}
-                            </div>
-                          )}
-                          {item.notes && (
-                            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                              Note: {item.notes}
-                            </div>
-                          )}
-                          <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-                            Added {formatDate(item.added_at)}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => removeDestination(item.id)}
-                          className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors ml-2"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
+                      <div className="px-4 py-2 bg-white/20 backdrop-blur rounded-lg">
+                        <span className="text-sm font-medium capitalize">{trip.traveler_type} Traveler</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {transportation.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                <div className="flex items-center mb-6">
-                  <Car className="h-6 w-6 text-amber-600 dark:text-amber-400 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Transportation ({transportation.length})
-                  </h2>
-                </div>
-                <div className="space-y-4">
-                  {transportation.map((item) => (
-                    <div
-                      key={item.id}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">
-                              {item.transportation_bookings.service_type}
-                            </span>
-                            <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-sm font-medium">
-                              {item.booking_status}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-300">
-                            <span className="font-semibold">{item.transportation_bookings.origin}</span>
-                            <span>→</span>
-                            <span className="font-semibold">{item.transportation_bookings.destination}</span>
-                          </div>
-                          <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                            {item.transportation_bookings.distance_km} km • {item.transportation_bookings.duration_minutes} minutes
-                          </div>
-                          {item.notes && (
-                            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                              Note: {item.notes}
-                            </div>
-                          )}
-                          <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-                            Added {formatDate(item.added_at)}
-                          </div>
-                        </div>
-                        <div className="text-right ml-4">
-                          <div className="text-xl font-bold text-amber-600 dark:text-amber-400 mb-4">
-                            {formatPrice(item.transportation_bookings.total_price)}
-                          </div>
-                          <button
-                            onClick={() => removeTransportation(item.id)}
-                            className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </button>
-                        </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-white/10 backdrop-blur rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold">{trip.days?.length || 0}</div>
+                        <div className="text-sm text-white/80">Days</div>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold">{stats.totalPlaces}</div>
+                        <div className="text-sm text-white/80">Places</div>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold">${stats.totalCost.toFixed(0)}</div>
+                        <div className="text-sm text-white/80">Est. Cost</div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Trip Summary</h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-sky-600 dark:text-sky-400">{flights.length}</div>
-                  <div className="text-gray-600 dark:text-gray-300 mt-1">Flights</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{destinations.length}</div>
-                  <div className="text-gray-600 dark:text-gray-300 mt-1">Destinations</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">{transportation.length}</div>
-                  <div className="text-gray-600 dark:text-gray-300 mt-1">Transportation</div>
-                </div>
-              </div>
-              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Estimated Cost</span>
-                  <span className="text-2xl font-bold text-sky-600 dark:text-sky-400">
-                    {formatPrice(
-                      flights.reduce((sum, item) => sum + item.flights.price, 0) +
-                      transportation.reduce((sum, item) => sum + item.transportation_bookings.total_price, 0)
+                  <div className="p-6">
+                    {trip.days && trip.days.length > 0 ? (
+                      <div className="space-y-6">
+                        {trip.days.map((day) => (
+                          <div key={day.id} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-gray-750 dark:to-gray-700 p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                                    {day.day_number}
+                                  </div>
+                                  <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white">Day {day.day_number}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      {new Date(day.date).toLocaleDateString('en-US', {
+                                        weekday: 'long',
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })}
+                                    </p>
+                                  </div>
+                                </div>
+                                {day.places && day.places.length > 0 && (
+                                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-4 h-4" />
+                                      <span>{day.places.length} places</span>
+                                    </div>
+                                    {day.total_distance > 0 && (
+                                      <div className="flex items-center gap-1">
+                                        <Plane className="w-4 h-4" />
+                                        <span>{day.total_distance.toFixed(1)} mi</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {day.places && day.places.length > 0 && (
+                              <div className="p-4 space-y-3">
+                                {day.places.map((place, index) => (
+                                  <div key={place.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-750 rounded-lg">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-sm font-bold">
+                                      {index + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{place.name}</h4>
+                                      {place.description && (
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{place.description}</p>
+                                      )}
+                                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                                        <span className="px-2 py-1 bg-white dark:bg-gray-800 rounded capitalize">{place.category}</span>
+                                        {place.duration > 0 && (
+                                          <span className="flex items-center gap-1">
+                                            <Clock className="w-3 h-3" />
+                                            {place.duration} min
+                                          </span>
+                                        )}
+                                        {place.cost > 0 && (
+                                          <span className="flex items-center gap-1">
+                                            <DollarSign className="w-3 h-3" />
+                                            ${place.cost}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {(!day.places || day.places.length === 0) && (
+                              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                                No activities planned for this day
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        No days planned yet. Visit the Itinerary page to start planning!
+                      </div>
                     )}
-                  </span>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         )}
       </div>
