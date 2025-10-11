@@ -1,0 +1,242 @@
+[
+  {
+    "code": "JFK",
+    "name": "John F. Kennedy International Airport",
+    "city": "New York",
+    "country": "United States"
+  },
+  {
+    "code": "LAX",
+    "name": "Los Angeles International Airport",
+    "city": "Los Angeles",
+    "country": "United States"
+  },
+  {
+    "code": "ORD",
+    "name": "O'Hare International Airport",
+    "city": "Chicago",
+    "country": "United States"
+  },
+  {
+    "code": "LHR",
+    "name": "London Heathrow Airport",
+    "city": "London",
+    "country": "United Kingdom"
+  },
+  {
+    "code": "CDG",
+    "name": "Charles de Gaulle Airport",
+    "city": "Paris",
+    "country": "France"
+  },
+  {
+    "code": "DXB",
+    "name": "Dubai International Airport",
+    "city": "Dubai",
+    "country": "United Arab Emirates"
+  },
+  {
+    "code": "NRT",
+    "name": "Narita International Airport",
+    "city": "Tokyo",
+    "country": "Japan"
+  },
+  {
+    "code": "HND",
+    "name": "Tokyo Haneda Airport",
+    "city": "Tokyo",
+    "country": "Japan"
+  },
+  {
+    "code": "SIN",
+    "name": "Singapore Changi Airport",
+    "city": "Singapore",
+    "country": "Singapore"
+  },
+  {
+    "code": "ICN",
+    "name": "Incheon International Airport",
+    "city": "Seoul",
+    "country": "South Korea"
+  },
+  {
+    "code": "SYD",
+    "name": "Sydney Kingsford Smith Airport",
+    "city": "Sydney",
+    "country": "Australia"
+  },
+  {
+    "code": "MEL",
+    "name": "Melbourne Airport",
+    "city": "Melbourne",
+    "country": "Australia"
+  },
+  {
+    "code": "FRA",
+    "name": "Frankfurt Airport",
+    "city": "Frankfurt",
+    "country": "Germany"
+  },
+  {
+    "code": "AMS",
+    "name": "Amsterdam Airport Schiphol",
+    "city": "Amsterdam",
+    "country": "Netherlands"
+  },
+  {
+    "code": "MAD",
+    "name": "Adolfo Suárez Madrid–Barajas Airport",
+    "city": "Madrid",
+    "country": "Spain"
+  },
+  {
+    "code": "BCN",
+    "name": "Barcelona–El Prat Airport",
+    "city": "Barcelona",
+    "country": "Spain"
+  },
+  {
+    "code": "FCO",
+    "name": "Leonardo da Vinci–Fiumicino Airport",
+    "city": "Rome",
+    "country": "Italy"
+  },
+  {
+    "code": "MXP",
+    "name": "Milan Malpensa Airport",
+    "city": "Milan",
+    "country": "Italy"
+  },
+  {
+    "code": "IST",
+    "name": "Istanbul Airport",
+    "city": "Istanbul",
+    "country": "Turkey"
+  },
+  {
+    "code": "DEN",
+    "name": "Denver International Airport",
+    "city": "Denver",
+    "country": "United States"
+  },
+  {
+    "code": "MIA",
+    "name": "Miami International Airport",
+    "city": "Miami",
+    "country": "United States"
+  },
+  {
+    "code": "SFO",
+    "name": "San Francisco International Airport",
+    "city": "San Francisco",
+    "country": "United States"
+  },
+  {
+    "code": "SEA",
+    "name": "Seattle-Tacoma International Airport",
+    "city": "Seattle",
+    "country": "United States"
+  },
+  {
+    "code": "ATL",
+    "name": "Hartsfield-Jackson Atlanta International Airport",
+    "city": "Atlanta",
+    "country": "United States"
+  },
+  {
+    "code": "DFW",
+    "name": "Dallas/Fort Worth International Airport",
+    "city": "Dallas",
+    "country": "United States"
+  },
+  {
+    "code": "YYZ",
+    "name": "Toronto Pearson International Airport",
+    "city": "Toronto",
+    "country": "Canada"
+  },
+  {
+    "code": "YVR",
+    "name": "Vancouver International Airport",
+    "city": "Vancouver",
+    "country": "Canada"
+  },
+  {
+    "code": "MEX",
+    "name": "Mexico City International Airport",
+    "city": "Mexico City",
+    "country": "Mexico"
+  },
+  {
+    "code": "GRU",
+    "name": "São Paulo/Guarulhos International Airport",
+    "city": "São Paulo",
+    "country": "Brazil"
+  },
+  {
+    "code": "EZE",
+    "name": "Ministro Pistarini International Airport",
+    "city": "Buenos Aires",
+    "country": "Argentina"
+  },
+  {
+    "code": "BKK",
+    "name": "Suvarnabhumi Airport",
+    "city": "Bangkok",
+    "country": "Thailand"
+  },
+  {
+    "code": "HKG",
+    "name": "Hong Kong International Airport",
+    "city": "Hong Kong",
+    "country": "Hong Kong"
+  },
+  {
+    "code": "PVG",
+    "name": "Shanghai Pudong International Airport",
+    "city": "Shanghai",
+    "country": "China"
+  },
+  {
+    "code": "PEK",
+    "name": "Beijing Capital International Airport",
+    "city": "Beijing",
+    "country": "China"
+  },
+  {
+    "code": "DEL",
+    "name": "Indira Gandhi International Airport",
+    "city": "Delhi",
+    "country": "India"
+  },
+  {
+    "code": "BOM",
+    "name": "Chhatrapati Shivaji Maharaj International Airport",
+    "city": "Mumbai",
+    "country": "India"
+  },
+  {
+    "code": "DPS",
+    "name": "Ngurah Rai International Airport",
+    "city": "Bali",
+    "country": "Indonesia"
+  },
+  {
+    "code": "CGK",
+    "name": "Soekarno–Hatta International Airport",
+    "city": "Jakarta",
+    "country": "Indonesia"
+  },
+  {
+    "code": "MNL",
+    "name": "Ninoy Aquino International Airport",
+    "city": "Manila",
+    "country": "Philippines"
+  },
+  {
+    "code": "CAI",
+    "name": "Cairo International Airport",
+    "city": "Cairo",
+    "country": "Egypt"
+  }
+]
