@@ -124,9 +124,9 @@ export function ItineraryLeftPanel({ trip, onPlaceUpdate, onPlaceSelect, selecte
 
   return (
     <div className="w-full lg:w-2/5 h-auto lg:h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
-      <div className="p-6 pt-8">
+      <div className="px-6 pt-8 pb-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 break-words overflow-wrap-anywhere leading-tight">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 break-words leading-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
             {trip.name}
           </h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
