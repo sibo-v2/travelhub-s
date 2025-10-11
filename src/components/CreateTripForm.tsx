@@ -4,6 +4,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useAuth } from '../contexts/AuthContext';
 import { itineraryService } from '../services/itineraryService';
+import { AISuggestions } from './AISuggestions';
 
 interface CreateTripFormProps {
   travelerType: string;
@@ -493,6 +494,16 @@ export function CreateTripForm({ travelerType, onSubmit, onBack, onClose }: Crea
             </button>
           </div>
         </form>
+
+        {destination && startDate && (
+          <div className="mt-6">
+            <AISuggestions
+              context={`Planning a trip to ${destination}${fromCity ? ` from ${fromCity}` : ''}, starting ${startDate.toLocaleDateString()}${endDate ? ` until ${endDate.toLocaleDateString()}` : ''} as a ${travelerType} traveler`}
+              title="Trip Planning Tips"
+              maxSuggestions={5}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

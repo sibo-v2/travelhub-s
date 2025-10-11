@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Plane, Calendar as CalendarIcon, Users, MapPin, Plus, X, Search } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { AISuggestions } from './AISuggestions';
 
 interface Airport {
   code: string;
@@ -613,6 +614,16 @@ export function FlightSearch({ onSearch, loading = false }: FlightSearchProps) {
           </>
         )}
       </button>
+
+      {origin && destination && (
+        <div className="mt-6">
+          <AISuggestions
+            context={`Flight search from ${origin} to ${destination}${departureDate ? `, departing ${departureDate.toLocaleDateString()}` : ''}${returnDate ? `, returning ${returnDate.toLocaleDateString()}` : ''}`}
+            title="Flight Tips"
+            maxSuggestions={4}
+          />
+        </div>
+      )}
     </div>
   );
 }

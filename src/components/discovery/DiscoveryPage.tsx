@@ -11,6 +11,7 @@ import {
 import { PlaceCard } from './PlaceCard';
 import { DiscoveryFilters as FiltersComponent } from './DiscoveryFilters';
 import { DiscoverySortMenu } from './DiscoverySortMenu';
+import { AISuggestions } from '../AISuggestions';
 
 export function DiscoveryPage() {
   const { user } = useAuth();
@@ -132,6 +133,12 @@ export function DiscoveryPage() {
               Search
             </button>
           </form>
+
+          <AISuggestions
+            context={`Looking for places to visit in ${searchLocation}${filters.categories ? `, interested in ${filters.categories.join(', ')}` : ''}`}
+            title="Local Recommendations"
+            maxSuggestions={4}
+          />
 
           <div className="flex items-center justify-between">
             <div className="flex gap-3">
