@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { Calendar, ChevronDown, ChevronUp, Wand2, Plus, MoreVertical, Loader2 } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Wand2, MoreVertical, Loader2 } from 'lucide-react';
 import { Trip, TripDay } from '../../services/itineraryService';
 import { PlaceCard } from './PlaceCard';
-import { AddPlaceModal } from './AddPlaceModal';
 import { aiItineraryGenerator } from '../../services/aiItineraryGenerator';
 import { geocodingService } from '../../services/geocodingService';
 import { itineraryService } from '../../services/itineraryService';
@@ -17,8 +16,6 @@ interface ItineraryLeftPanelProps {
 export function ItineraryLeftPanel({ trip, onPlaceUpdate, onPlaceSelect, selectedPlaceId }: ItineraryLeftPanelProps) {
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set(trip.days?.map(d => d.id) || []));
   const [loadingDays, setLoadingDays] = useState<Set<string>>(new Set());
-  const [showAddPlaceModal, setShowAddPlaceModal] = useState(false);
-  const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
 
   const toggleDay = (dayId: string) => {
     setExpandedDays(prev => {
@@ -195,17 +192,6 @@ export function ItineraryLeftPanel({ trip, onPlaceUpdate, onPlaceSelect, selecte
                           )}
                         </button>
 
-                        <button
-                          onClick={() => {
-                            setSelectedDayId(day.id);
-                            setShowAddPlaceModal(true);
-                          }}
-                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold border-2 border-emerald-500 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add place
-                        </button>
-
                         {day.places && day.places.length > 0 && (
                           <div className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -242,19 +228,6 @@ export function ItineraryLeftPanel({ trip, onPlaceUpdate, onPlaceSelect, selecte
                         No places added yet
                       </div>
                     )}
-
-                    <button
-                      onClick={() => {
-                        setSelectedDayId(day.id);
-                        setShowAddPlaceModal(true);
-                      }}
-                      className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-emerald-500 dark:hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors group"
-                    >
-                      <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
-                        <Plus className="w-5 h-5" />
-                        <span className="font-medium">Add place</span>
-                      </div>
-                    </button>
                   </div>
                 )}
               </div>
@@ -262,14 +235,6 @@ export function ItineraryLeftPanel({ trip, onPlaceUpdate, onPlaceSelect, selecte
           })}
         </div>
       </div>
-
-      <AddPlaceModal
-        isOpen={showAddPlaceModal}
-        onClose={() => setShowAddPlaceModal(false)}
-        dayId={selectedDayId || ''}
-        destination={trip.destination}
-        onPlaceAdded={onPlaceUpdate}
-      />
     </div>
   );
 }
