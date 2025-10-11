@@ -72,7 +72,7 @@ export const itineraryService = {
         },
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error creating trip:', error);
@@ -107,7 +107,7 @@ export const itineraryService = {
       .from('trips')
       .select('*')
       .eq('id', tripId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       console.error('Error fetching trip:', error);
@@ -166,7 +166,7 @@ export const itineraryService = {
       .from('trip_places')
       .insert(place)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error adding place:', error);
@@ -255,8 +255,11 @@ export const itineraryService = {
       start_date: '2025-10-10',
       end_date: '2025-10-12',
       traveler_type: 'combination',
-      total_budget: 5000,
-      currency: 'USD',
+      budget: {
+        total: 5000,
+        spent: 0,
+        currency: 'USD',
+      },
     });
 
     if (!trip) return null;
